@@ -129,15 +129,19 @@ func InsertMembers(ms []interface{}) error {
 }
 
 // GetMembers returns all members from the database
-func GetMembers(filter bson.M) ([]Member, error) {
+func GetMembers(filter bson.M) ([]Member, map[int]Member, error) {
 	var members []Member
+	memberMap := map[int]Member{}
 	cur, err := membersCollection.Find(ctx(), filter)
 	if err != nil {
-		return members, err
+		return members, memberMap, err
 	}
 	defer cur.Close(ctx())
 	err = cur.All(ctx(), &members)
-	return members, err
+	for _, m := range members {
+		memberMap[m.ID] = m
+	}
+	return members, memberMap, err
 }
 
 // UpdateMember updates a member document

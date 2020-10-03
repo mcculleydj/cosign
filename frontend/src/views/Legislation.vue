@@ -1,6 +1,5 @@
 <template>
   <v-container>
-    hide: {{ hideNoData }} billslen: {{ bills.length }}
     <v-row align="center">
       <v-col class="py-0">
         <div class="brand">Legislation</div>
@@ -16,7 +15,7 @@
           <v-list dense>
             <v-list-item
               v-if="!bipartisanFilter"
-              @click="bipartisanFilter = true"
+              @click="applyBipartisanFilter()"
             >
               <v-chip color="deep-purple" dark>Bipartisan Sponsorship</v-chip>
             </v-list-item>
@@ -80,7 +79,11 @@
           </template>
         </v-combobox>
         <v-expand-transition>
-          <Bill v-if="bill" :bill="bill" :isBillView="true" />
+          <Bill
+            v-if="bill && typeof bill === 'object'"
+            :bill="bill"
+            :isBillView="true"
+          />
         </v-expand-transition>
       </v-col>
     </v-row>
@@ -146,6 +149,13 @@ export default {
       this.subjectFilters = []
     },
 
+    applyBipartisanFilter() {
+      this.bipartisanFilter = true
+      this.bill = null
+      this.bills = []
+      this.showFilterDialog = false
+    },
+
     openFilterDialog(filterType) {
       this.filterType = filterType
       this.showFilterDialog = true
@@ -157,6 +167,8 @@ export default {
       } else {
         this.subjectFilters.push(...filters)
       }
+      this.bill = null
+      this.bills = []
       this.showFilterDialog = false
     },
 

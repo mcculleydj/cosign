@@ -18,7 +18,7 @@ type PartyID struct {
 
 func buildNameToIDMap() (map[string]int, error) {
 	nameToID := map[string]int{}
-	members, err := database.GetMembers(bson.M{})
+	members, _, err := database.GetMembers(bson.M{})
 	if err != nil {
 		return nameToID, err
 	}

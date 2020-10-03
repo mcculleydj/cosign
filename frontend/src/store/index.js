@@ -11,12 +11,14 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     members: [],
+    memberMap: {},
     cell: null,
     policyAreas: [],
     subjects: [],
   },
 
   getters: {
+    memberMap: state => state.memberMap,
     memberItems: state =>
       state.members.map(m => ({
         text: `${m.name} [${m.parties.join(' | ')} - ${
@@ -30,8 +32,9 @@ export default new Vuex.Store({
   },
 
   mutations: {
-    SET_MEMBERS(state, members) {
+    SET_MEMBERS(state, { members, memberMap }) {
       state.members = members
+      state.memberMap = memberMap
     },
 
     SET_CELL(state, cell) {

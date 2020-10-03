@@ -15,7 +15,7 @@ export const routes = [
   {
     path: '/bills',
     name: 'bills',
-    component: () => import('@/views/Bills'),
+    component: () => import('@/views/Legislation'),
     icon: 'mdi-script-text-outline',
     text: 'Legislation',
   },

@@ -77,12 +77,16 @@ func getBillsByTitle(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMembers(w http.ResponseWriter, r *http.Request) {
-	users, err := database.GetMembers(bson.M{})
+	members, memberMap, err := database.GetMembers(bson.M{})
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, "Error retrieving members", "")
 		return
 	}
-	WriteResponse(w, users)
+	payload := map[string]interface{}{
+		"members":   members,
+		"memberMap": memberMap,
+	}
+	WriteResponse(w, payload)
 }
 
 func getCell(w http.ResponseWriter, r *http.Request) {

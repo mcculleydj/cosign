@@ -57,7 +57,7 @@ func setCounts(m database.Member, throttle chan struct{}, wg *sync.WaitGroup) {
 
 // PopulateCounts maps member IDs to number of bills cosponsored
 func PopulateCounts() error {
-	members, err := database.GetMembers(bson.M{})
+	members, _, err := database.GetMembers(bson.M{})
 	if err != nil {
 		return err
 	}
