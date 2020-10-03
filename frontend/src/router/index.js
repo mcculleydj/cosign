@@ -20,11 +20,18 @@ export const routes = [
     text: 'Legislation',
   },
   {
-    path: '/graph',
-    name: 'graph',
-    component: () => import('@/views/Graph'),
-    icon: 'mdi-graphql',
-    text: 'Graphs',
+    path: '/visualizations',
+    name: 'visualizations',
+    component: () => import('@/views/Visualizations'),
+    icon: 'mdi-chart-arc',
+    text: 'Visualizations',
+  },
+  {
+    path: '/sandbox',
+    name: 'sandbox',
+    component: () => import('@/views/Sandbox'),
+    icon: 'mdi-test-tube',
+    text: 'Sandbox',
   },
 ]
 

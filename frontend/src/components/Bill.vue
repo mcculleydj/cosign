@@ -34,7 +34,7 @@
             {{ bill.numDems }}
           </div>
         </v-col>
-        <v-col>
+        <v-col cols="auto">
           <div :id="isBillView ? 'svg-seats' : `svg-${bill.number}`" />
         </v-col>
         <v-col>

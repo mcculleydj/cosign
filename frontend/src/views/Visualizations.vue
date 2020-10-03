@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <div class="brand">Graphs</div>
+    <div class="brand">Visualizations</div>
     <v-row>
       <v-col>
         <v-autocomplete
@@ -25,6 +25,17 @@
         </v-col>
         <v-col cols="auto">
           <v-switch label="Sticky" v-model="sticky" />
+        </v-col>
+        <v-col>
+          <v-slider
+            label="Spread"
+            hide-details
+            v-model="strength"
+            min="30"
+            max="200"
+            inverse-label
+            @end="draw()"
+          />
         </v-col>
         <v-spacer />
         <v-col cols="auto">
@@ -58,6 +69,7 @@ export default {
     member: null,
     thresholds: [0, 10, 20, 30, 40, 50],
     threshold: 40,
+    strength: 30,
   }),
 
   created() {
@@ -77,6 +89,7 @@ export default {
       const { reset, remove } = drawGraph('svg', this.member, this.memberMap, {
         threshold: this.threshold,
         sticky: this.sticky,
+        strength: -this.strength,
       })
       this.resetFn = reset
       this.removeFn = remove
@@ -123,13 +136,13 @@ svg {
   opacity: 1;
 }
 .node.rep {
-  fill: #f00;
+  fill: #f44336;
 }
 .node.dem {
-  fill: #00f;
+  fill: #1565c0;
 }
 .node.oth {
-  fill: #0f0;
+  fill: #4caf50;
 }
 
 .node.fixed {

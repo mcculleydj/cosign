@@ -64,7 +64,7 @@ export function drawGraph(selector, member, memberMap, params) {
   const simulation = d3
     .forceSimulation()
     .nodes(instance.nodes)
-    .force('charge', d3.forceManyBody().strength(-50))
+    .force('charge', d3.forceManyBody().strength(params.strength))
     .force('center', d3.forceCenter(width / 2, height / 2))
     .force('link', d3.forceLink(instance.links))
     .on('tick', tick)
