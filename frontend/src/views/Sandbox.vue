@@ -38,7 +38,8 @@ const params = {
   height: 800,
   innerRadius: 50,
   displayFontSize: 22,
-  bodyFontSize: 10,
+  bodyFontSize: 20,
+  threshold: 40,
 }
 
 export default {
@@ -56,7 +57,7 @@ export default {
 
   async mounted() {
     await this.dispatchGetMembers()
-    drawChart(this.member, this.memberMap, params, {
+    drawChart('#d3-container', this.member, this.memberMap, params, {
       setCosponsor: this.setCosponsor,
     })
   },

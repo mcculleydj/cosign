@@ -11,48 +11,37 @@
         />
       </v-col>
     </v-row>
-    <template v-if="member">
-      <v-row align="center">
-        <v-col cols="auto">
-          <v-select
-            label="Threshold"
-            :items="thresholds"
-            v-model="threshold"
-            hide-details
-            outlined
-            dense
-          />
-        </v-col>
-        <v-col cols="auto">
-          <v-switch label="Sticky" v-model="sticky" />
-        </v-col>
-        <v-col>
-          <v-slider
-            label="Spread"
-            hide-details
-            v-model="strength"
-            min="30"
-            max="200"
-            inverse-label
-            @end="draw()"
-          />
-        </v-col>
-        <v-spacer />
-        <v-col cols="auto">
-          <v-btn outlined color="primary" @click="resetFn">
-            <v-icon>mdi-refresh</v-icon>
-            reset
-          </v-btn>
-        </v-col>
-      </v-row>
-      <svg />
-    </template>
+    <v-row>
+      <v-col cols="auto">
+        <v-select
+          label="Threshold"
+          :items="thresholds"
+          v-model="threshold"
+          hide-details
+          outlined
+          dense
+        />
+      </v-col>
+    </v-row>
+    <v-row>
+      <v-col>
+        <div id="d3-container" />
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { drawGraph } from '@/d3/graph'
+import { drawChart } from '@/d3/radial-bar'
+
+const params = {
+  width: 700,
+  height: 700,
+  innerRadius: 50,
+  displayFontSize: 22,
+  bodyFontSize: 10,
+}
 
 export default {
   computed: {
@@ -63,13 +52,11 @@ export default {
   },
 
   data: () => ({
-    sticky: false,
-    resetFn: () => {},
-    removeFn: () => {},
     member: null,
-    thresholds: [0, 10, 20, 30, 40, 50],
+    cosponsor: null,
     threshold: 40,
-    strength: 30,
+    thresholds: [0, 10, 20, 30, 40, 50],
+    removeFn: () => {},
   }),
 
   created() {
@@ -83,34 +70,35 @@ export default {
       dispatchGetMembers: 'getMembers',
     }),
 
-    async draw() {
+    setCosponsor(cosponsor) {
+      this.cosponsor = cosponsor
+    },
+
+    async renderChart() {
       this.removeFn()
       await this.$nextTick()
-      const { reset, remove } = drawGraph('svg', this.member, this.memberMap, {
-        threshold: this.threshold,
-        sticky: this.sticky,
-        strength: -this.strength,
-      })
-      this.resetFn = reset
-      this.removeFn = remove
+      this.removeFn = drawChart(
+        '#d3-container',
+        this.member,
+        this.memberMap,
+        {
+          threshold: this.threshold,
+          ...params,
+        },
+        {
+          setCosponsor: this.setCosponsor,
+        },
+      )
     },
   },
 
   watch: {
     member() {
-      this.draw()
+      this.renderChart()
     },
 
     threshold() {
-      this.draw()
-    },
-
-    sticky(state) {
-      if (!state) {
-        this.draw()
-      } else {
-        this.draw(true)
-      }
+      this.renderChart()
     },
   },
 }
@@ -126,28 +114,8 @@ svg {
 </style>
 
 <style>
-.link {
-  stroke: #333;
-  stroke-width: 1px;
-}
-
-.node {
-  cursor: move;
-  opacity: 1;
-}
-.node.rep {
-  fill: #f44336;
-}
-.node.dem {
-  fill: #1565c0;
-}
-.node.oth {
-  fill: #4caf50;
-}
-
-.node.fixed {
-  opacity: 1;
-  stroke-width: 1.5px;
-  stroke: #000;
+.active {
+  fill: goldenrod;
+  opacity: 0.5;
 }
 </style>
