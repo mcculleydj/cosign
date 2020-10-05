@@ -16,6 +16,8 @@ export function drawChart(selector, member, memberMap, params, callbacks) {
     .select(selector)
     .append('svg')
     .attr('viewBox', [0, 0, params.width, params.height])
+    .attr('preserveAspectRatio', 'xMinYMin meet')
+    .classed('svg-content', true)
 
   // addContext(svg, data, params)
 
@@ -43,7 +45,7 @@ function xScale(data) {
   return d3
     .scaleBand()
     .domain(data.map(d => d.index))
-    .range([0, 2 * Math.PI])
+    .range([-Math.PI / 2, Math.PI / 2])
 }
 
 function yScale(data, params) {
@@ -68,7 +70,8 @@ function buildRadialBarChart(svg, data, params, callbacks) {
   let name
   svg
     .append('g')
-    .attr('transform', `translate(${params.width / 2}, ${params.height / 2})`)
+
+    .attr('transform', `translate(${params.width / 8}, ${params.height / 4})`)
     .selectAll('path')
     .data(data)
     .join(enter => {
@@ -94,6 +97,8 @@ function buildRadialBarChart(svg, data, params, callbacks) {
           name.remove()
         })
     })
+
+  // svg.attr('transform', 'rotate(90)')
 }
 
 // function addContext(svg, data, params) {

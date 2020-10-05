@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import axios from 'axios'
 
+import { memberToString } from '@/common/functions'
+
 const api = axios.create({
   baseURL: `${window.location.origin}/api/`,
 })
@@ -21,9 +23,7 @@ export default new Vuex.Store({
     memberMap: state => state.memberMap,
     memberItems: state =>
       state.members.map(m => ({
-        text: `${m.name} [${m.parties.join(' | ')} - ${
-          m.state
-        } - ${m.districts.join(' | ')}]`,
+        text: memberToString(m),
         value: m,
       })),
     cell: state => state.cell,

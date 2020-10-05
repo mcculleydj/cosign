@@ -110,7 +110,7 @@ export default {
         this.loading ||
         !this.query ||
         this.query.length < 3 ||
-        (this.bill !== null && this.bill.title === this.query)
+        (this.bill && this.bill.title === this.query)
       )
     },
   },
