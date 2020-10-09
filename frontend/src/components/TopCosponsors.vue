@@ -15,12 +15,14 @@
 
     <template v-if="member">
       <h3>Top 30 Cosponsors from Another Party</h3>
-      <h4 style="white-space: pre">{{ memberToString(cosponsor) || ' ' }}</h4>
+      <h2 style="white-space: pre">{{ memberToString(cosponsor) || ' ' }}</h2>
       <div class="text-center" style="margin-bottom: -10px">
         <small>Number of Cosponsored Bills</small>
       </div>
     </template>
-    <div class="svg-container" />
+    <div class="view-box">
+      <div class="svg-container" />
+    </div>
   </v-container>
 </template>
 
@@ -36,7 +38,7 @@ const params = {
   margin: {
     top: 30,
     bottom: 30,
-    left: 10,
+    left: 30,
     right: 30,
   },
   cutoff: 30,
@@ -132,7 +134,6 @@ export default {
   display: inline-block;
   position: relative;
   width: 100%;
-  padding-bottom: 100%;
   vertical-align: top;
   overflow: hidden;
 }

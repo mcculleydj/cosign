@@ -10,8 +10,8 @@
         :key="route.text"
         link
         :to="{ name: route.name }"
-        exact
         color="primary"
+        :exact="$route.name !== 'home'"
       >
         <v-list-item-icon>
           <v-icon>{{ route.icon }}</v-icon>

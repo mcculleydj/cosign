@@ -1,14 +1,21 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Cosponsors from '@/views/Cosponsors'
+import Home from '@/views/Home'
 
 Vue.use(VueRouter)
 
 export const routes = [
   {
     path: '/',
+    name: 'home',
+    component: Home,
+    icon: 'mdi-home',
+    text: 'Home',
+  },
+  {
+    path: '/cosponsors',
     name: 'cosponsors',
-    component: Cosponsors,
+    component: () => import('@/views/Cosponsors'),
     icon: 'mdi-account-multiple',
     text: 'Cosponsors',
   },

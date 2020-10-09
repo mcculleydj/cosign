@@ -29,7 +29,7 @@
       <v-divider class="mt-3 mb-2" />
       <v-row v-if="cell.bills.length">
         <v-col>
-          <p>Cosponsored Legislation</p>
+          <p>Cosponsored Legislation ({{ cell.bills.length }} Bills)</p>
           <Bill
             v-for="bill in cell.bills"
             :key="`bill-number-${bill.number}`"
