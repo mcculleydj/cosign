@@ -2,3 +2,5 @@ data
 backend/.vscode
 backend/bills
 frontend/node_modules
+backend/igraph/venv
+backend/igraph/.idea
