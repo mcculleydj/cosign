@@ -29,7 +29,7 @@
       <v-divider class="mt-3 mb-2" />
       <v-row v-if="cell.bills.length">
         <v-col>
-          <p>Cosponsored Legislation</p>
+          <p>Cosponsored Legislation ({{ cell.bills.length }} Bills)</p>
           <Bill
             v-for="bill in cell.bills"
             :key="`bill-number-${bill.number}`"
@@ -138,10 +138,26 @@ export default {
     sponsor: null,
     cosponsor: null,
     loading: false,
+    sponsorInitialized: true,
+    cosponsorInitialized: true,
   }),
 
-  created() {
-    this.dispatchGetMembers()
+  async created() {
+    await this.dispatchGetMembers()
+
+    if (this.$route.query.sponsorId) {
+      this.sponsor = this.sponsorItems.find(
+        s => s.value.id === +this.$route.query.sponsorId,
+      ).value
+      this.sponsorInitialized = false
+    }
+
+    if (this.$route.query.cosponsorId) {
+      this.cosponsor = this.cosponsorItems.find(
+        c => c.value.id === +this.$route.query.cosponsorId,
+      ).value
+      this.cosponsorInitialized = false
+    }
   },
 
   beforeDestroy() {
@@ -157,7 +173,7 @@ export default {
   },
 
   watch: {
-    async sponsor(sponsor) {
+    sponsor(sponsor) {
       if (sponsor && this.cosponsor) {
         let position = `${sponsor.id}_${this.cosponsor.id}`
         if (sponsor.id > this.cosponsor.id) {
@@ -170,6 +186,28 @@ export default {
       } else {
         this.dispatchSetCell(null)
       }
+
+      if (this.sponsorInitialized) {
+        if (sponsor) {
+          this.$router.replace({
+            name: 'cosponsors',
+            query: {
+              ...this.$route.query,
+              sponsorId: sponsor.id,
+            },
+          })
+        } else {
+          this.$router.replace({
+            name: 'cosponsors',
+            query: {
+              ...this.$route.query,
+              sponsorId: undefined,
+            },
+          })
+        }
+      }
+
+      this.sponsorInitialized = true
     },
 
     cosponsor(cosponsor) {
@@ -185,6 +223,28 @@ export default {
       } else {
         this.dispatchSetCell(null)
       }
+
+      if (this.cosponsorInitialized) {
+        if (cosponsor) {
+          this.$router.replace({
+            name: 'cosponsors',
+            query: {
+              ...this.$route.query,
+              cosponsorId: cosponsor.id,
+            },
+          })
+        } else {
+          this.$router.replace({
+            name: 'cosponsors',
+            query: {
+              ...this.$route.query,
+              cosponsorId: undefined,
+            },
+          })
+        }
+      }
+
+      this.cosponsorInitialized = true
     },
   },
 }

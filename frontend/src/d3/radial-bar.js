@@ -1,12 +1,5 @@
 import * as d3 from 'd3'
 
-// params:
-// width
-// height
-// innerRadius
-// displayFontSize
-// bodyFontSize
-
 export function transform(member, memberMap, threshold) {
   return Object.keys(member.counts)
     .map(id => +id)
@@ -16,17 +9,25 @@ export function transform(member, memberMap, threshold) {
     .sort((m1, m2) => m1.count - m2.count)
 }
 
-export function drawChart(member, memberMap, params, callbacks) {
-  const data = transform(member, memberMap, 40)
+export function drawChart(selector, member, memberMap, params, callbacks) {
+  const data = transform(member, memberMap, params.threshold)
 
   const svg = d3
-    .select('#d3-container')
+    .select(selector)
     .append('svg')
     .attr('viewBox', [0, 0, params.width, params.height])
+    .attr('preserveAspectRatio', 'xMinYMin meet')
+    .classed('svg-content', true)
 
-  addContext(svg, data, params)
+  // addContext(svg, data, params)
 
   buildRadialBarChart(svg, data, params, callbacks)
+
+  function remove() {
+    svg.remove()
+  }
+
+  return remove
 }
 
 function arc(xScale, yScale, params) {
@@ -44,7 +45,7 @@ function xScale(data) {
   return d3
     .scaleBand()
     .domain(data.map(d => d.index))
-    .range([0, 2 * Math.PI])
+    .range([-Math.PI / 2, Math.PI / 2])
 }
 
 function yScale(data, params) {
@@ -62,13 +63,15 @@ function colors(data) {
   return d3
     .scaleSequential()
     .domain(d3.extent(data, d => d.count))
-    .interpolator(d3.interpolatePurples)
+    .interpolator(d3.interpolateCividis)
 }
 
 function buildRadialBarChart(svg, data, params, callbacks) {
+  let name
   svg
     .append('g')
-    .attr('transform', `translate(${params.width / 2}, ${params.height / 2})`)
+
+    .attr('transform', `translate(${params.width / 8}, ${params.height / 4})`)
     .selectAll('path')
     .data(data)
     .join(enter => {
@@ -78,40 +81,43 @@ function buildRadialBarChart(svg, data, params, callbacks) {
         .attr('stroke', '1px')
         .attr('d', arc(xScale(data), yScale(data, params), params))
         .on('mouseover', function(_, d) {
-          console.log('over', d.name)
           callbacks.setCosponsor(d)
           d3.select(this).classed('active', true)
+
+          name = svg
+            .append('text')
+            .text(d.name)
+            .attr('x', params.width / 2 + 10)
+            .attr('y', params.height / 6)
         })
         .on('mouseleave', function() {
-          console.log('leave')
           callbacks.setCosponsor(null)
           d3.select(this).classed('active', false)
+
+          name.remove()
         })
     })
+
+  // svg.attr('transform', 'rotate(90)')
 }
 
-function addContext(svg, data, params) {
-  svg
-    .append('text')
-    .attr('class', 'title')
-    .text('Cosponsors')
-    .attr('x', params.width / 2 + 10)
-    .attr('y', params.height / 6)
-
-  svg
-    .append('text')
-    .attr('class', 'content')
-    .text('Blurb')
-    .attr('x', params.width / 2 + 10)
-    .attr('y', params.height / 6 + 20)
-
-  svg
-    .append('text')
-    .attr('font-size', params.bodyFontSize)
-    .text('Blurb')
-    .attr(
-      'x',
-      params.width / 2 - params.innerRadius / 2 - params.bodyFontSize * 2.5,
-    )
-    .attr('y', params.height / 2 + params.innerRadius / 4)
-}
+// function addContext(svg, data, params) {
+// svg
+//   .append('text')
+//   .attr('class', 'title')
+//   .text('Cosponsors')
+//   .attr('x', params.width / 2 + 10)
+//   .attr('y', params.height / 6)
+// svg
+//   .append('text')
+//   .attr('class', 'content')
+//   .text('Blurb')
+//   .attr('x', params.width / 2 + 10)
+//   .attr('y', params.height / 6 + 20)
+// svg
+//   .append('text')
+//   .attr('font-size', params.bodyFontSize)
+//   .text('Score')
+//   .attr('x', params.width / 2 - params.innerRadius / 2)
+//   .attr('y', params.height / 2 + params.innerRadius / 6)
+// }
