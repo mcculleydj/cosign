@@ -9,7 +9,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -107,38 +106,38 @@ func getCell(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCells(w http.ResponseWriter, r *http.Request) {
-	idString, found := mux.Vars(r)["id"]
-	if !found {
-		WriteError(w, http.StatusBadRequest, "Missing id paramater", "")
+	policyAreas, hasPolicyAreas := mux.Vars(r)["policyAreas"]
+	subjects, hasSubjects := mux.Vars(r)["subjects"]
+	if !hasPolicyAreas && !hasSubjects {
+		WriteError(w, http.StatusBadRequest, "Missing policy area or subject", "")
 		return
 	}
-	id, err := strconv.Atoi(idString)
-	if !found {
-		WriteError(w, http.StatusBadRequest, "Member ID should be a number", "")
-		return
-	}
-	filter := bson.M{
-		"$or": bson.A{
-			bson.M{
-				"position": bson.M{
-					"$regex": primitive.Regex{Pattern: fmt.Sprintf("^%d_", id), Options: "i"},
-				},
-			},
-			bson.M{
-				"position": bson.M{
-					"$regex": primitive.Regex{Pattern: fmt.Sprintf("_%d$", id), Options: "i"},
-				},
-			},
-		},
-	}
-	cells, err := database.GetCells(filter)
-	if err == mongo.ErrNoDocuments {
-		WriteError(w, http.StatusNotFound, "Unable to find any documents", "")
-		return
-	} else if err != nil {
-		WriteError(w, http.StatusInternalServerError, "Error retrieving cell data", err.Error())
-		return
-	}
+	fmt.Println(policyAreas, subjects)
+
+	// filter := bson.M{
+	// 	"$or": bson.A{
+	// 		bson.M{
+	// 			"position": bson.M{
+	// 				"$regex": primitive.Regex{Pattern: fmt.Sprintf("^%d_", id), Options: "i"},
+	// 			},
+	// 		},
+	// 		bson.M{
+	// 			"position": bson.M{
+	// 				"$regex": primitive.Regex{Pattern: fmt.Sprintf("_%d$", id), Options: "i"},
+	// 			},
+	// 		},
+	// 	},
+	// }
+	// cells, err := database.GetCells(filter)
+	// if err == mongo.ErrNoDocuments {
+	// 	WriteError(w, http.StatusNotFound, "Unable to find any documents", "")
+	// 	return
+	// } else if err != nil {
+	// 	WriteError(w, http.StatusInternalServerError, "Error retrieving cell data", err.Error())
+	// 	return
+	// }
+
+	cells := []database.Cell{}
 	WriteResponse(w, cells)
 }
 

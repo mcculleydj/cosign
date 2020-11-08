@@ -46,8 +46,8 @@ func updateCells(members []PartyID, billNumber int, throttle chan struct{}, wg *
 				"$setOnInsert": bson.M{
 					"position": position,
 				},
-				"$inc":  bson.M{"count": 1},
-				"$push": bson.M{"billNumbers": billNumber},
+				"$inc": bson.M{"count": 1},
+				"$set": bson.M{fmt.Sprintf("billNumbers.%d", billNumber): true},
 			}
 			if err := database.UpsertCell(filter, update); err != nil {
 				return err

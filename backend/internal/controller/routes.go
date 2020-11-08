@@ -17,7 +17,10 @@ func Router() *mux.Router {
 	)
 	router.HandleFunc("/api/members", getMembers).Methods("GET")
 	router.HandleFunc("/api/cell/{position}", getCell).Methods("GET")
-	router.HandleFunc("/api/cells/{id}", getCells).Methods("GET")
+	router.HandleFunc("/api/cells", getCells).Methods("GET").Queries(
+		"policyAreas", "{policyAreas}",
+		"subjects", "{subjects}",
+	)
 	router.HandleFunc("/api/subjects", getSubjects).Methods("GET")
 	return router
 }

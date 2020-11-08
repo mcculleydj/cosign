@@ -31,10 +31,12 @@ type Member struct {
 
 // Cell describes the adjacency matrix cell data
 type Cell struct {
-	Position    string `json:"position" bson:"position"`
-	Count       int    `json:"count" bson:"count"`
-	BillNumbers []int  `json:"-" bson:"billNumbers"`
-	Bills       []Bill `json:"bills" bson:"-"`
+	Position    string       `json:"position" bson:"position"`
+	Count       int          `json:"count" bson:"count"`
+	BillNumbers map[int]bool `json:"-" bson:"billNumbers"`
+	Bills       []Bill       `json:"bills" bson:"-"`
+	PolicyAreas []string     `json:"policyAreas" bson:"policyAreas"`
+	Subjects    []string     `json:"subjects" bson:"subjects"`
 }
 
 // PolicyArea describes a policy area category on a bill

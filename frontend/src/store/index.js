@@ -104,5 +104,23 @@ export default new Vuex.Store({
         console.error(err)
       }
     },
+
+    async getCells(_, { params, previousSource }) {
+      if (previousSource) {
+        previousSource.cancel()
+      }
+
+      const source = axios.CancelToken.source()
+
+      try {
+        const response = await api.get('cells', {
+          params,
+          cancelToken: source.token,
+        })
+        return { cells: response.data, source }
+      } catch (err) {
+        console.error(err)
+      }
+    },
   },
 })
