@@ -13,4 +13,4 @@ A portfolio project designed to illustrate some basic proficiency with:
 - Nginx + TLS for secure web hosting
 - AWS for application hosting
 
-TODO: say more about the actual project and include this in a landing page. test readme change
+TODO: say more about the actual project and include this in a landing page.
