@@ -95,6 +95,24 @@ export default new Vuex.Store({
       }
     },
 
+    async getBillsBySubject(_, { params, previousSource }) {
+      if (previousSource) {
+        previousSource.cancel()
+      }
+
+      const source = axios.CancelToken.source()
+
+      try {
+        const response = await api.get('bills/subject', {
+          params,
+          cancelToken: source.token,
+        })
+        return { bills: response.data, source }
+      } catch (err) {
+        console.error(err)
+      }
+    },
+
     async getSubjects({ commit }) {
       try {
         const response = await api.get('subjects')
@@ -109,14 +127,13 @@ export default new Vuex.Store({
       if (previousSource) {
         previousSource.cancel()
       }
-
       const source = axios.CancelToken.source()
-
       try {
         const response = await api.get('cells', {
           params,
           cancelToken: source.token,
         })
+        console.log('r', response)
         return { cells: response.data, source }
       } catch (err) {
         console.error(err)

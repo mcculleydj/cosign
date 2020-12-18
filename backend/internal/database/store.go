@@ -185,7 +185,8 @@ func GetCell(filter bson.M) (Cell, error) {
 }
 
 // GetCells returns cells matching the supplied filter
-func GetCells(filter bson.M) ([]Cell, error) {
+// Will remove any bills that do not correspond to one of the supplied subjects
+func GetCells(filter bson.M, subjects []string) ([]Cell, error) {
 	var cells []Cell
 	cur, err := cellsCollection.Find(ctx(), filter)
 	if err != nil {
@@ -193,6 +194,32 @@ func GetCells(filter bson.M) ([]Cell, error) {
 	}
 	defer cur.Close(ctx())
 	err = cur.All(ctx(), &cells)
+
+	subjectsFilter := bson.M{
+		"subject": bson.M{
+			"$in": subjects,
+		},
+	}
+	subjectDocuments, err := GetSubjects(subjectsFilter)
+	if err != nil {
+		return cells, err
+	}
+	billNumberSet := map[int]bool{}
+	for _, subject := range subjectDocuments {
+		for _, billNumber := range subject.BillNumbers {
+			billNumberSet[billNumber] = true
+		}
+	}
+	for _, cell := range cells {
+		billNumbers := map[int]bool{}
+		for billNumber, _ := range cell.BillNumbers {
+			if _, ok := billNumberSet[billNumber]; ok {
+				billNumbers[billNumber] = true
+			}
+		}
+		cell.BillNumbers = billNumbers
+		cell.Count = len(billNumbers)
+	}
 	return cells, err
 }
 
@@ -228,10 +255,10 @@ func GetPolicyAreas() ([]PolicyArea, error) {
 	return policyAreas, err
 }
 
-// GetSubjects returns all subjects
-func GetSubjects() ([]Subject, error) {
+// GetSubjects returns all subjects matching the supplied filter
+func GetSubjects(filter bson.M) ([]Subject, error) {
 	var subjects []Subject
-	cur, err := subjectsCollection.Find(ctx(), bson.M{})
+	cur, err := subjectsCollection.Find(ctx(), filter)
 	if err != nil {
 		return subjects, err
 	}

@@ -2,15 +2,15 @@
   <v-container>
     <div class="brand mb-1">Visualizations</div>
     <v-tabs v-model="tab">
+      <v-tab>Subject Graph</v-tab>
       <v-tab>Top Cosponsors</v-tab>
-      <v-tab>Subject Graphs</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item>
-        <TopCosponsors />
+        <SubjectGraph />
       </v-tab-item>
       <v-tab-item>
-        <SubjectGraphs />
+        <TopCosponsors />
       </v-tab-item>
     </v-tabs-items>
   </v-container>
@@ -18,12 +18,12 @@
 
 <script>
 import TopCosponsors from '@/components/TopCosponsors'
-import SubjectGraphs from '@/components/SubjectGraphs'
+import SubjectGraph from '@/components/SubjectGraph'
 
 export default {
   components: {
     TopCosponsors,
-    SubjectGraphs,
+    SubjectGraph,
   },
 
   data: () => ({

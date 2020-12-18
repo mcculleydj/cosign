@@ -15,12 +15,13 @@ func Router() *mux.Router {
 		"query", "{query}",
 		"bipartisan", "{bipartisan}",
 	)
+	router.HandleFunc("/api/bills/subject", getBillsBySubjects).Methods("GET").Queries(
+		"subjects", "{subjects}",
+		"bipartisan", "{bipartisan}",
+	)
 	router.HandleFunc("/api/members", getMembers).Methods("GET")
 	router.HandleFunc("/api/cell/{position}", getCell).Methods("GET")
-	router.HandleFunc("/api/cells", getCells).Methods("GET").Queries(
-		"policyAreas", "{policyAreas}",
-		"subjects", "{subjects}",
-	)
+	router.HandleFunc("/api/cells", getCells).Methods("GET").Queries("subjects", "{subjects}")
 	router.HandleFunc("/api/subjects", getSubjects).Methods("GET")
 	return router
 }

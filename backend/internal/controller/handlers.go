@@ -2,7 +2,6 @@ package controller
 
 import (
 	"backend/internal/database"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -75,6 +74,44 @@ func getBillsByTitle(w http.ResponseWriter, r *http.Request) {
 	WriteResponse(w, bills)
 }
 
+func getBillsBySubjects(w http.ResponseWriter, r *http.Request) {
+	subjectsQuery := r.FormValue("subjects")
+	if subjectsQuery == "" {
+		WriteError(w, http.StatusBadRequest, "Missing subjects", "")
+		return
+	}
+	subjects := strings.Split(subjectsQuery, ",")
+	filter := bson.M{
+		"subject": bson.M{
+			"$in": subjects,
+		},
+	}
+	subjectDocuments, err := database.GetSubjects(filter)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, "Error retreiving subjects", "")
+		return
+	}
+	billNumbers := []int{}
+	for _, subjectDocument := range subjectDocuments {
+		billNumbers = append(billNumbers, subjectDocument.BillNumbers...)
+	}
+	filter = bson.M{
+		"number": bson.M{
+			"$in": billNumbers,
+		},
+	}
+	bipartisan := r.FormValue("bipartisan")
+	if bipartisan == "true" {
+		filter["multiParty"] = true
+	}
+	bills, err := database.GetBills(filter)
+	if err != nil {
+		WriteError(w, http.StatusInternalServerError, "Error retreiving bills", "")
+		return
+	}
+	WriteResponse(w, bills)
+}
+
 func getMembers(w http.ResponseWriter, r *http.Request) {
 	members, memberMap, err := database.GetMembers(bson.M{})
 	if err != nil {
@@ -106,38 +143,31 @@ func getCell(w http.ResponseWriter, r *http.Request) {
 }
 
 func getCells(w http.ResponseWriter, r *http.Request) {
-	policyAreas, hasPolicyAreas := mux.Vars(r)["policyAreas"]
-	subjects, hasSubjects := mux.Vars(r)["subjects"]
-	if !hasPolicyAreas && !hasSubjects {
-		WriteError(w, http.StatusBadRequest, "Missing policy area or subject", "")
+	subjectsStr, hasSubjects := mux.Vars(r)["subjects"]
+
+	if !hasSubjects || subjectsStr == "" {
+		WriteError(w, http.StatusBadRequest, "Missing subject", "")
 		return
 	}
-	fmt.Println(policyAreas, subjects)
 
-	// filter := bson.M{
-	// 	"$or": bson.A{
-	// 		bson.M{
-	// 			"position": bson.M{
-	// 				"$regex": primitive.Regex{Pattern: fmt.Sprintf("^%d_", id), Options: "i"},
-	// 			},
-	// 		},
-	// 		bson.M{
-	// 			"position": bson.M{
-	// 				"$regex": primitive.Regex{Pattern: fmt.Sprintf("_%d$", id), Options: "i"},
-	// 			},
-	// 		},
-	// 	},
-	// }
-	// cells, err := database.GetCells(filter)
-	// if err == mongo.ErrNoDocuments {
-	// 	WriteError(w, http.StatusNotFound, "Unable to find any documents", "")
-	// 	return
-	// } else if err != nil {
-	// 	WriteError(w, http.StatusInternalServerError, "Error retrieving cell data", err.Error())
-	// 	return
-	// }
+	subjects := strings.Split(subjectsStr, ",")
 
-	cells := []database.Cell{}
+	filter := bson.M{
+		"subjects": bson.M{
+			"$in": subjects,
+		},
+	}
+
+	cells, err := database.GetCells(filter, subjects)
+
+	if err == mongo.ErrNoDocuments {
+		WriteError(w, http.StatusNotFound, "Unable to find any documents", "")
+		return
+	} else if err != nil {
+		WriteError(w, http.StatusInternalServerError, "Error retrieving cell data", err.Error())
+		return
+	}
+
 	WriteResponse(w, cells)
 }
 
@@ -147,7 +177,7 @@ func getSubjects(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, http.StatusInternalServerError, "Error retrieving policy area data", err.Error())
 		return
 	}
-	subjects, err := database.GetSubjects()
+	subjects, err := database.GetSubjects(bson.M{})
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, "Error retrieving subject data", err.Error())
 		return

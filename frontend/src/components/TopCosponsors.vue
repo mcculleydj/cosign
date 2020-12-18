@@ -21,7 +21,7 @@
       </div>
     </template>
     <div class="view-box">
-      <div class="svg-container" />
+      <div class="top-cosponsors-svg-container" />
     </div>
   </v-container>
 </template>
@@ -79,7 +79,7 @@ export default {
       this.removeFn()
       await this.$nextTick()
       this.removeFn = drawChart(
-        '.svg-container',
+        '.top-cosponsors-svg-container',
         {
           member: this.member,
           memberMap: this.memberMap,
@@ -130,7 +130,7 @@ export default {
 </style>
 
 <style scoped>
-.svg-container {
+.top-cosponsors-svg-container {
   display: inline-block;
   position: relative;
   width: 100%;
