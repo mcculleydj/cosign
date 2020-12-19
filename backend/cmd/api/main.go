@@ -3,7 +3,6 @@ package main
 import (
 	"backend/internal/controller"
 	"backend/internal/database"
-	"flag"
 	"fmt"
 	"net/http"
 	"os"
