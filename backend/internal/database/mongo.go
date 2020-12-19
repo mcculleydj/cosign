@@ -19,7 +19,8 @@ var (
 )
 
 // Connect establishes the database connection
-func Connect(uri string) (err error) {
+func Connect() (err error) {
+	uri := "mongodb://localhost:27017"
 	client, err = mongo.NewClient(options.Client().ApplyURI(uri))
 	if err != nil {
 		return err

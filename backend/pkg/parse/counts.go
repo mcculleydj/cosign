@@ -28,7 +28,7 @@ func setCounts(m database.Member, throttle chan struct{}, wg *sync.WaitGroup) {
 				"$regex": primitive.Regex{Pattern: pattern, Options: "i"},
 			},
 		}
-		cells, err := database.GetCells(filter)
+		cells, err := database.GetCells(filter, nil)
 		if err != nil {
 			panic(err.Error())
 		}

@@ -51,8 +51,8 @@ func Clean(dropBills, dropMembers, dropCells, dropSubjects bool) error {
 		}
 		indices := []mongo.IndexModel{
 			{Keys: bson.M{"position": 1}, Options: indexOpts()},
-			{Keys: bson.M{"policyAreas": 1}, Options: indexOpts()},
-			{Keys: bson.M{"subjects": 1}, Options: indexOpts()},
+			{Keys: bson.M{"policyAreas": 1}},
+			{Keys: bson.M{"subjects": 1}},
 		}
 		if _, err := cellsCollection.Indexes().CreateMany(ctx(), indices); err != nil {
 			return err
@@ -194,6 +194,10 @@ func GetCells(filter bson.M, subjects []string) ([]Cell, error) {
 	}
 	defer cur.Close(ctx())
 	err = cur.All(ctx(), &cells)
+
+	if subjects == nil {
+		return cells, err
+	}
 
 	subjectsFilter := bson.M{
 		"subject": bson.M{

@@ -8,23 +8,13 @@ import (
 )
 
 func main() {
-	dev := flag.Bool("d", false, "Use local mongo")
-	user := flag.String("u", "", "Mongo username")
-	password := flag.String("p", "", "Mongo password")
 	populateBills := flag.Bool("b", false, "Populate bills")
 	populateMembers := flag.Bool("m", false, "Populate members")
 	populateCells := flag.Bool("c", false, "Populate cells and member counts")
 	populateSubjects := flag.Bool("s", false, "Populate policy areas and subjects")
 	flag.Parse()
 
-	var uri string
-	if *dev {
-		uri = "mongodb://localhost:27017"
-	} else {
-		uri = fmt.Sprintf("mongodb+srv://%s:%s@cluster0.wht7g.mongodb.net/admin?retryWrites=true&w=majority", *user, *password)
-	}
-
-	if err := database.Connect(uri); err != nil {
+	if err := database.Connect(); err != nil {
 		panic("Mongo connect error: " + err.Error())
 	}
 	defer database.Disconnect()

@@ -13,7 +13,6 @@ func appendPolicyArea(policyArea database.PolicyArea, cells []database.Cell, thr
 		throttle <- struct{}{}
 		wg.Done()
 	}()
-	fmt.Printf("Checking cells for membership in policy area: %s...\n", policyArea.PolicyArea)
 	for _, cell := range cells {
 		for _, billNumber := range policyArea.BillNumbers {
 			if _, ok := cell.BillNumbers[billNumber]; ok {
@@ -39,7 +38,6 @@ func appendSubject(subject database.Subject, cells []database.Cell, throttle cha
 		throttle <- struct{}{}
 		wg.Done()
 	}()
-	fmt.Printf("Checking cells for membership in subject: %s...\n", subject.Subject)
 	for _, cell := range cells {
 		for _, billNumber := range subject.BillNumbers {
 			if _, ok := cell.BillNumbers[billNumber]; ok {
@@ -65,7 +63,7 @@ func appendSubject(subject database.Subject, cells []database.Cell, throttle cha
 // iterate over all bill numbers belonging to the subject or policy area
 // if a bill number for this subject / policy area appears in the cell's bill number set append this subject / policy area
 func updateCellSubjects() error {
-	subjects, err := database.GetSubjects()
+	subjects, err := database.GetSubjects(bson.M{})
 	if err != nil {
 		return err
 	}
@@ -73,11 +71,11 @@ func updateCellSubjects() error {
 	if err != nil {
 		return err
 	}
-	cells, err := database.GetCells(bson.M{})
+	cells, err := database.GetCells(bson.M{}, nil)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Updating cell policy areas...")
+	fmt.Println("Updating cell policy areas...")
 	throttle := make(chan struct{}, 16)
 	for i := 0; i < 16; i++ {
 		throttle <- struct{}{}
@@ -89,7 +87,7 @@ func updateCellSubjects() error {
 		go appendPolicyArea(policyArea, cells, throttle, &wg)
 	}
 	wg.Wait()
-	fmt.Printf("Updating cell subjects...")
+	fmt.Println("Updating cell subjects...")
 	for _, subject := range subjects {
 		<-throttle
 		wg.Add(1)
