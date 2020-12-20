@@ -40,6 +40,7 @@ export const routes = [
     icon: 'mdi-test-tube',
     text: 'Sandbox',
   },
+  // TODO: 404 page
 ]
 
 const router = new VueRouter({
