@@ -1,6 +1,27 @@
 <template>
   <v-card flat>
-    <v-card-text>
+    <v-row class="px-3 pt-3 pb-0">
+      <v-col class="large-text">
+        <p>
+          This network graph visualization considers a data access pattern
+          beginning with a particular set of subjects. The user then further
+          specifies what kinds of legislation they are interested in by
+          selecting individual bills from the list of all bills that match any
+          of the selected subjects (set union).
+        </p>
+        <p>
+          Once two or more bills are selected we can generate a useful graph
+          using D3's force layout to show which members have sponsored these
+          bills. For a single bill, this information should be retrieved in the
+          legislation view where every sponsor for the selected bill is listed
+          by name, but for multiple bills this visualization immediately makes
+          it clear which members sponsored more of the selected bills than their
+          peers allowing the user to identify a bipartisan cohort of members
+          likely to support similar legislation.
+        </p>
+      </v-col>
+    </v-row>
+    <v-card-text class="pt-0">
       <h3 class="my-2">Step 1: Choose relevant subjects</h3>
       <v-row>
         <v-col>
@@ -20,44 +41,48 @@
       </v-row>
       <template v-if="selectedSubjects.length > 0">
         <h3 class="my-2">Step 2: Choose relevant legislation</h3>
-        <v-row>
-          <v-col class="border ma-3">
-            <div
-              v-for="bill in concatenatedBills"
-              :key="`bill-chip-${bill.number}`"
+        <v-row
+          style="border: 1px solid rgba(0, 0, 0, 0.3); border-radius: 4px;"
+          class="pa-3 mx-0"
+        >
+          <v-col
+            v-for="bill in concatenatedBills"
+            :key="`bill-chip-${bill.number}`"
+            cols="auto"
+            class="pa-1"
+          >
+            <v-tooltip v-if="bill.title.length > 75" bottom>
+              <template v-slot:activator="{ on }">
+                <v-chip
+                  v-on="on"
+                  :color="bill.selected ? 'primary' : ''"
+                  close-icon="mdi-open-in-new"
+                  close
+                  small
+                  @click="toggleBill(bill)"
+                  @click:close="exploreBill(bill)"
+                >
+                  {{ bill.truncatedTitle }} ({{ bill.sponsorCount }})
+                </v-chip>
+              </template>
+              {{ bill.title }}
+            </v-tooltip>
+            <v-chip
+              v-else
+              :color="bill.selected ? 'primary' : ''"
+              close-icon="mdi-open-in-new"
+              close
+              small
+              @click="toggleBill(bill)"
+              @click:close="exploreBill(bill)"
             >
-              <v-tooltip v-if="bill.title.length > 75" bottom>
-                <template v-slot:activator="{ on }">
-                  <v-chip
-                    class="ma-1"
-                    v-on="on"
-                    :color="bill.selected ? 'primary' : ''"
-                    close-icon="mdi-open-in-new"
-                    close
-                    @click="toggleBill(bill)"
-                    @click:close="exploreBill(bill)"
-                  >
-                    {{ bill.truncatedTitle }} ({{ bill.sponsorCount }})
-                  </v-chip>
-                </template>
-                {{ bill.title }}
-              </v-tooltip>
-              <v-chip
-                v-else
-                class="ma-1"
-                :color="bill.selected ? 'primary' : ''"
-                close-icon="mdi-open-in-new"
-                close
-                @click="toggleBill(bill)"
-                @click:close="exploreBill(bill)"
-              >
-                {{ bill.truncatedTitle }} ({{ bill.sponsorCount }})
-              </v-chip>
-            </div>
+              {{ bill.truncatedTitle }} ({{ bill.sponsorCount }})
+            </v-chip>
           </v-col>
         </v-row>
       </template>
-      <div v-if="selectedBillNumbers.length > 0" class="view-box">
+
+      <div v-if="selectedBillNumbers.length > 0">
         <div class="subject-graph-svg-container" />
       </div>
     </v-card-text>
@@ -68,6 +93,11 @@
 import { mapGetters, mapActions } from 'vuex'
 import { truncate } from '@/common/functions'
 import { drawGraph } from '@/d3/graph'
+
+// TODO: make it clear if this is the intersection between subjects
+// or the union, maybe even allow a user to control this
+
+// TODO: handle something like health programs which has 100s of bills
 
 export default {
   computed: {
@@ -245,6 +275,10 @@ export default {
 .border {
   border: 1px solid rgba(0, 0, 0, 0.38);
   border-radius: 4px;
+}
+
+.large-text {
+  font-size: 1.1rem;
 }
 </style>
 

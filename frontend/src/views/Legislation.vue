@@ -30,6 +30,17 @@
       </v-col>
     </v-row>
 
+    <div class="large-text mt-3">
+      <p>
+        This view allows you to search for legislation by name using a debounced
+        autocomplete to fetch matching results from the API based on the search
+        string. The ADD FILTER dropdown let's you limit the results to
+        bipartisan sponsors or a particular set of subjects / policy areas. The
+        user also has the option to supply * as a wildcard search if they want
+        to see all bills matching their applied filters.
+      </p>
+    </div>
+
     <ActiveFilters
       :bipartisanFilter="bipartisanFilter"
       :policyAreaFilters="policyAreaFilters"
@@ -127,10 +138,20 @@ export default {
     filterType: '',
     timeout: null,
     axiosSource: null,
+    initialized: false,
   }),
 
-  created() {
-    this.dispatchGetSubjects()
+  async created() {
+    await this.dispatchGetSubjects()
+
+    if (this.$route.query.billNumber) {
+      const bills = await this.dispatchGetBillsByNumbers(
+        this.$route.query.billNumber,
+      )
+      this.bill = bills[0]
+    } else {
+      this.initialized = true
+    }
   },
 
   beforeDestroy() {
@@ -139,6 +160,7 @@ export default {
 
   methods: {
     ...mapActions({
+      dispatchGetBillsByNumbers: 'getBillsByNumbers',
       dispatchGetBillsByTitle: 'getBillsByTitle',
       dispatchGetSubjects: 'getSubjects',
     }),
@@ -233,6 +255,26 @@ export default {
         this.bills = []
       }
     },
+
+    bill() {
+      if (this.initialized) {
+        this.$router.replace({
+          name: 'bills',
+          query: {
+            ...this.$route.query,
+            billNumber: this.bill.number,
+          },
+        })
+      } else {
+        this.initialized = true
+      }
+    },
   },
 }
 </script>
+
+<style scoped>
+.large-text {
+  font-size: 1.1rem;
+}
+</style>

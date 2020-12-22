@@ -5,7 +5,7 @@ import "github.com/gorilla/mux"
 // Router constructor function
 func Router() *mux.Router {
 	router := mux.NewRouter()
-	router.HandleFunc("/api/bills/number", getBillsByNumber).Methods("GET").Queries("numbers", "{numbers}")
+	router.HandleFunc("/api/bills/number", getBillsByNumber).Methods("GET").Queries("billNumbers", "{billNumbers}")
 	router.HandleFunc("/api/bills/title", getBillsByTitle).Methods("GET").Queries(
 		"query", "{query}",
 		"bipartisan", "{bipartisan}",

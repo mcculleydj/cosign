@@ -77,6 +77,17 @@ export default new Vuex.Store({
       commit('SET_CELL', cell)
     },
 
+    async getBillsByNumbers(_, billNumbers) {
+      try {
+        const response = await api.get('bills/number', {
+          params: { billNumbers },
+        })
+        return response.data
+      } catch (err) {
+        console.error(err)
+      }
+    },
+
     async getBillsByTitle(_, { params, previousSource }) {
       if (previousSource) {
         previousSource.cancel()

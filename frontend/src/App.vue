@@ -23,6 +23,7 @@ export default {
 .brand {
   font-family: 'Arizonia';
   font-size: 44px;
+  margin-top: 8px;
 }
 
 /* boo this hack! boo! */

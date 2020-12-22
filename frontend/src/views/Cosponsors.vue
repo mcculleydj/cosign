@@ -1,6 +1,23 @@
 <template>
   <v-container>
     <div class="brand">Cosponsors</div>
+    <div class="large-text mt-3">
+      <p>
+        When you select a member as the sponsor, the list of available
+        cosponsors adjusts to include only members affiliated with another
+        party. When you select a member as the cosponsor, all of the resolutions
+        that these two members have cosponsored together are listed below along
+        with their policy area, subjects, and sponsorship breakdown along party
+        lines in a D3 visualization meant to remind the user of the House floor.
+        Selection of a particular member is made easier through the use of
+        autocomplete controls allowing a user to type a partial name and limit
+        the number of options to select from. Finally, the selected members are
+        reflected in the URL state making this view refresh tolerant, link
+        sharable, and giving the rest of the application the ability to route to
+        this view with any two members already selected simply by setting URL
+        query params.
+      </p>
+    </div>
     <v-row>
       <v-col>
         <v-autocomplete
@@ -29,7 +46,11 @@
       <v-divider class="mt-3 mb-2" />
       <v-row v-if="cell.bills.length">
         <v-col>
-          <p>Cosponsored Legislation ({{ cell.bills.length }} Bills)</p>
+          <p>
+            Cosponsored Legislation ({{
+              cell.bills.length === 1 ? '1 Bill' : `${cell.bills.length} Bills`
+            }})
+          </p>
           <Bill
             v-for="bill in cell.bills"
             :key="`bill-number-${bill.number}`"
@@ -249,3 +270,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.large-text {
+  font-size: 1.1rem;
+}
+</style>

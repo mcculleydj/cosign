@@ -29,7 +29,7 @@ function applyPartyLabel(data, numDems, numReps, numOther) {
   let d = 0
   let r = 440
   while (numDems > 0 || numReps > 0) {
-    if (numDems > 0 && d === 220) d++
+    if (numDems > 0 && d === 220 && numOther > 0) d++
     if (numDems > 0) data[d].label = 'd'
     if (numReps > 0) data[r].label = 'r'
     d++

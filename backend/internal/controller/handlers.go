@@ -12,7 +12,7 @@ import (
 )
 
 func getBillsByNumber(w http.ResponseWriter, r *http.Request) {
-	numbersString := r.FormValue("numbers")
+	numbersString := r.FormValue("billNumbers")
 	numbers := []int{}
 	for _, s := range strings.Split(numbersString, ",") {
 		n, err := strconv.Atoi(s)

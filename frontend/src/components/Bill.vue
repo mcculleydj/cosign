@@ -73,6 +73,18 @@
           </v-col>
         </v-row>
       </template>
+      <v-row v-else justify="end">
+        <v-col cols="auto" class="py-0">
+          <router-link
+            :to="{
+              name: 'bills',
+              query: { billNumber: this.bill.number },
+            }"
+          >
+            View Sponsors
+          </router-link>
+        </v-col>
+      </v-row>
     </v-card-text>
   </v-card>
 </template>

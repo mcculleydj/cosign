@@ -1,8 +1,15 @@
 <template>
   <v-navigation-drawer permanent app>
-    <div class="ma-2 brand">
-      Cosign
-    </div>
+    <v-row align="center">
+      <v-col cols="auto" class="ml-3 pr-0">
+        <v-img src="logo.png" width="60" />
+      </v-col>
+      <v-col>
+        <div class="ma-2 pl-0 brand">
+          Cosign
+        </div>
+      </v-col>
+    </v-row>
     <v-divider />
     <v-list nav>
       <v-list-item
@@ -11,7 +18,8 @@
         link
         :to="{ name: route.name }"
         color="primary"
-        :exact="$route.name !== 'home'"
+        :exact="route.name === 'home'"
+        :class="route.name === $route.name ? 'router-link-active' : ''"
       >
         <v-list-item-icon>
           <v-icon>{{ route.icon }}</v-icon>

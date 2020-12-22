@@ -2,15 +2,15 @@
   <v-container>
     <div class="brand mb-1">Visualizations</div>
     <v-tabs v-model="tab">
-      <v-tab>Subject Graph</v-tab>
       <v-tab>Top Cosponsors</v-tab>
+      <v-tab>Subject Graph</v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
       <v-tab-item>
-        <SubjectGraph />
+        <TopCosponsors :tab="tab" />
       </v-tab-item>
       <v-tab-item>
-        <TopCosponsors />
+        <SubjectGraph :tab="tab" />
       </v-tab-item>
     </v-tabs-items>
   </v-container>

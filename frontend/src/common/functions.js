@@ -32,3 +32,7 @@ export function truncate(s, len) {
 
   return s
 }
+
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
