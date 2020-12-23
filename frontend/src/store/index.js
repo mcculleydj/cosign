@@ -144,7 +144,6 @@ export default new Vuex.Store({
           params,
           cancelToken: source.token,
         })
-        console.log('r', response)
         return { cells: response.data, source }
       } catch (err) {
         console.error(err)

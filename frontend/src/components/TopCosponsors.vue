@@ -3,12 +3,12 @@
     <v-row class="px-3">
       <v-col class="large-text">
         This is a responsive bar chart that considers a data access pattern
-        beginning with a particular member. By listing the top cospsonsors from
-        another party for this member and then allowing the user to click on the
-        bar in order to route to the cosponsor view where details for each bill
-        are listed provides a method of quickly identifying who is most likely
-        to work with a given member and what kinds of leglislation they tend to
-        cosponsor together.
+        beginning with a particular member. Once the user chooses a member, the
+        top cospsonsors from another party are displayed in descending order. By
+        clicking the bar the user can route to the cosponsor view where details
+        for each cosponsored bill are listed. This provides a method of quickly
+        identifying who is most likely to work with a given member and what
+        kinds of leglislation they tend to cosponsor together.
       </v-col>
     </v-row>
     <v-row class="px-3">

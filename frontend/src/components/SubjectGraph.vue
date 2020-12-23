@@ -1,270 +1,357 @@
 <template>
-  <v-card flat>
-    <v-row class="px-3 pt-3 pb-0">
+  <v-container>
+    <v-row>
       <v-col class="large-text">
         <p>
           This network graph visualization considers a data access pattern
-          beginning with a particular set of subjects. The user then further
-          specifies what kinds of legislation they are interested in by
-          selecting individual bills from the list of all bills that match any
-          of the selected subjects (set union).
+          beginning with a particular subject or policy area. The user then
+          further specifies what kinds of legislation they are interested in by
+          selecting individual bills from the list of all corresponding bills
+          (set union). Because the focus of this application is on bipartisan
+          support for bills, every bill listed will have at least one sponsor
+          from each party.
         </p>
         <p>
-          Once two or more bills are selected we can generate a useful graph
-          using D3's force layout to show which members have sponsored these
-          bills. For a single bill, this information should be retrieved in the
-          legislation view where every sponsor for the selected bill is listed
-          by name, but for multiple bills this visualization immediately makes
-          it clear which members sponsored more of the selected bills than their
-          peers allowing the user to identify a bipartisan cohort of members
-          likely to support similar legislation.
+          Once two or more bills are selected, D3's force layout helps identify
+          a bipartisan cohort of members likely to support similar legislation
+          by clustering members between the bills they've sponsored. By default,
+          I hide all member nodes that have not sponsored at least two of the of
+          selected bills to reduce noise. That information may still be useful
+          or the user may want to tighten the bounds further leading to the
+          inclusion of a select control to set the minimum number of bills a
+          member must have sponsored to remain in the graph.
         </p>
       </v-col>
     </v-row>
-    <v-card-text class="pt-0">
-      <h3 class="my-2">Step 1: Choose relevant subjects</h3>
-      <v-row>
-        <v-col>
-          <v-autocomplete
-            label="Subject"
-            v-model="selectedSubjects"
-            :items="subjectItems"
-            outlined
-            hide-details
-            multiple
-            small-chips
-            deletable-chips
-            clearable
-            @change="getBills()"
-          />
-        </v-col>
-      </v-row>
-      <template v-if="selectedSubjects.length > 0">
-        <h3 class="my-2">Step 2: Choose relevant legislation</h3>
-        <v-row
-          style="border: 1px solid rgba(0, 0, 0, 0.3); border-radius: 4px;"
-          class="pa-3 mx-0"
-        >
-          <v-col
-            v-for="bill in concatenatedBills"
-            :key="`bill-chip-${bill.number}`"
-            cols="auto"
-            class="pa-1"
-          >
-            <v-tooltip v-if="bill.title.length > 75" bottom>
-              <template v-slot:activator="{ on }">
-                <v-chip
-                  v-on="on"
-                  :color="bill.selected ? 'primary' : ''"
-                  close-icon="mdi-open-in-new"
-                  close
-                  small
-                  @click="toggleBill(bill)"
-                  @click:close="exploreBill(bill)"
-                >
-                  {{ bill.truncatedTitle }} ({{ bill.sponsorCount }})
-                </v-chip>
-              </template>
-              {{ bill.title }}
-            </v-tooltip>
-            <v-chip
-              v-else
-              :color="bill.selected ? 'primary' : ''"
-              close-icon="mdi-open-in-new"
-              close
-              small
-              @click="toggleBill(bill)"
-              @click:close="exploreBill(bill)"
-            >
-              {{ bill.truncatedTitle }} ({{ bill.sponsorCount }})
-            </v-chip>
-          </v-col>
-        </v-row>
-      </template>
 
-      <div v-if="selectedBillNumbers.length > 0">
-        <div class="subject-graph-svg-container" />
-      </div>
-    </v-card-text>
-  </v-card>
+    <h3 class="my-2">Step 1: Choose relevant policy areas and subjects</h3>
+
+    <v-row>
+      <v-col>
+        <v-autocomplete
+          label="Policy Areas"
+          v-model="policyAreaBillNumbers"
+          :items="policyAreaItems"
+          outlined
+          multiple
+          small-chips
+          deletable-chips
+          clearable
+        />
+        <v-autocomplete
+          label="Subjects"
+          v-model="subjectBillNumbers"
+          :items="subjectItems"
+          outlined
+          multiple
+          hide-details
+          small-chips
+          deletable-chips
+          clearable
+        />
+      </v-col>
+    </v-row>
+
+    <h3 class="my-2">
+      Step 2: Choose at least two pieces of relevant legislation
+    </h3>
+
+    <v-autocomplete
+      v-model="bills"
+      :items="billOptions"
+      item-text="title"
+      :loading="loading"
+      :search-input.sync="query"
+      outlined
+      :hide-no-data="hideNoData"
+      placeholder="Start typing to search"
+      prepend-inner-icon="mdi-magnify"
+      clearable
+      small-chips
+      deletable-chips
+      hint="Use * to see all results matching policy area(s) and subject(s)."
+      persistent-hint
+      return-object
+      no-filter
+      multiple
+      @change="onChange()"
+    >
+      <template v-slot:no-data>
+        <v-list class="py-0">
+          <v-list-item>
+            <v-list-item-content>
+              <v-list-item-title>
+                No matches found for: {{ query }}
+              </v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list>
+      </template>
+    </v-autocomplete>
+
+    <v-row v-if="selectedBillNumbers.length > 1">
+      <v-col class="pb-0">
+        <v-select
+          v-model="minimumBillCount"
+          :items="minimumBillCountItems"
+          hide-details
+          outlined
+          label="Minimum Bills"
+          @change="onChange(true)"
+          style="max-width: 140px"
+        />
+      </v-col>
+    </v-row>
+
+    <div
+      v-show="selectedBillNumbers.length > 1"
+      id="subject-graph-svg-container"
+      class="border mt-5"
+    />
+  </v-container>
 </template>
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
-import { truncate } from '@/common/functions'
-import { drawGraph } from '@/d3/graph'
+import Graph from '@/d3/graph'
+import { sleep } from '@/common/functions'
+
+// data transformation
+function generateGraph(selectedBills, minimumBillCount) {
+  // first determine how many bills each member has sponsored
+  // from the subset of bills selected
+  const memberToBillCount = {}
+  selectedBills.forEach(b => {
+    b.sponsors.concat(b.cosponsors).forEach(m => {
+      if (memberToBillCount[m]) {
+        memberToBillCount[m]++
+      } else {
+        memberToBillCount[m] = 1
+      }
+    })
+  })
+
+  // now populate nodes and links
+  // filtering out any members not meeting minimum bill count threshold
+  const nodes = []
+  const links = []
+  const memberToNodeID = {}
+  const nodeIDToNode = {}
+  let nodeIDSequence = 1
+
+  selectedBills.forEach(b => {
+    const billNodeID = nodeIDSequence++
+
+    // assign the next nodeID and increment sequence
+    nodes.push({
+      id: billNodeID,
+      type: 'bill',
+      display: b.title,
+    })
+
+    // iterate over all sponsors meeting the threshold
+    b.sponsors
+      .concat(b.cosponsors)
+      .filter(m => memberToBillCount[m] >= minimumBillCount)
+      .forEach(m => {
+        // set type based on party
+        const party = m.split('[')[1][0]
+        let type
+        if (party === 'D') {
+          type = 'democrat'
+        } else if (party === 'R') {
+          type = 'republican'
+        } else {
+          type = 'other'
+        }
+
+        if (memberToNodeID[m]) {
+          // if this member is already in the graph, simply add the link
+          links.push({
+            source: billNodeID,
+            target: memberToNodeID[m],
+          })
+          nodeIDToNode[memberToNodeID[m]].billCount++
+        } else {
+          // add the member to the graph along with a link to this bill
+          // and memoize the fact that this member is part of the graph now
+          const memberNodeID = nodeIDSequence++
+          memberToNodeID[m] = memberNodeID
+          const node = {
+            id: memberNodeID,
+            type,
+            display: m,
+            billCount: 1,
+          }
+          nodeIDToNode[memberNodeID] = node
+          nodes.push(node)
+          links.push({
+            source: billNodeID,
+            target: memberNodeID,
+          })
+        }
+      })
+  })
+
+  return { nodes, links }
+}
 
 // TODO: make it clear if this is the intersection between subjects
 // or the union, maybe even allow a user to control this
 
-// TODO: handle something like health programs which has 100s of bills
-
 export default {
   computed: {
-    ...mapGetters(['subjects']),
+    ...mapGetters(['policyAreas', 'subjects']),
 
-    subjectItems() {
-      return this.subjects.map(s => s.subject)
-    },
-
-    truncatedBills() {
-      return this.bills.map(b => ({
-        ...b,
-        truncatedTitle: truncate(b.title, 75),
-        sponsorCount: b.numDems + b.numReps + b.numLibs + b.numInds,
-        selected: this.selectedBillNumbers.includes(b.number),
+    policyAreaItems() {
+      return this.policyAreas.map(p => ({
+        text: p.policyArea,
+        value: p.billNumbers,
       }))
     },
 
-    selectedBills() {
-      return this.truncatedBills.filter(b => b.selected)
+    subjectItems() {
+      return this.subjects.map(s => ({
+        text: s.subject,
+        value: s.billNumbers,
+      }))
     },
 
-    unselectedBills() {
-      return this.truncatedBills.filter(b => !b.selected)
+    hideNoData() {
+      return (
+        this.loading ||
+        !this.query ||
+        this.query.length < 3 ||
+        this.bills.length > 0
+      )
     },
 
-    concatenatedBills() {
-      return this.selectedBills.concat(this.unselectedBills)
+    minimumBillCountItems() {
+      const items = []
+      for (let i = 1; i <= this.selectedBillNumbers.length; i++) {
+        items.push(i)
+      }
+      return items
     },
   },
 
   data: () => ({
-    selectedSubjects: [],
-    axiosSource: null,
+    graph: null,
+    policyAreaBillNumbers: [],
+    subjectBillNumbers: [],
+    query: '',
+    loading: false,
     bills: [],
-    billsLoading: false,
+    billOptions: [],
+    axiosSource: null,
+    timeout: null,
     selectedBillNumbers: [],
-    removeFn: () => {},
+    minimumBillCount: 2,
   }),
+
+  // TODO: handle resize events using RxJS
 
   created() {
     this.dispatchGetSubjects()
   },
 
+  mounted() {
+    this.graph = new Graph('subject-graph-svg-container')
+  },
+
+  beforeDestroy() {
+    clearTimeout(this.timeout)
+  },
+
   methods: {
     ...mapActions({
       dispatchGetSubjects: 'getSubjects',
-      dispatchGetBillsBySubject: 'getBillsBySubject',
+      dispatchGetBillsByTitle: 'getBillsByTitle',
     }),
 
+    search() {
+      this.loading = true
+      clearTimeout(this.timeout)
+
+      const selectedBillNumbers = this.bills.map(b => b.number)
+
+      const billNumberSet = {}
+      this.policyAreaBillNumbers
+        .concat(this.subjectBillNumbers)
+        .filter(n => !selectedBillNumbers.includes(n))
+        .forEach(n => {
+          billNumberSet[n] = true
+        })
+
+      const params = {
+        query: this.query,
+        bipartisan: true,
+        billNumbers: Object.keys(billNumberSet).join(','),
+      }
+
+      this.timeout = setTimeout(async () => {
+        try {
+          const { bills, source } = await this.dispatchGetBillsByTitle({
+            params,
+            previousSource: this.axiosSource,
+          })
+          this.axiosSource = source
+          this.billOptions = bills ? bills.concat(this.bills) : this.bills
+        } finally {
+          this.loading = false
+        }
+      }, 2000)
+    },
+
+    onChange(paramChange) {
+      // check for changes to the selected bills
+      if (
+        paramChange ||
+        this.bills.length !== this.selectedBillNumbers.length ||
+        !this.selectedBillNumbers.every((n, i) => n === this.bills[i].number)
+      ) {
+        this.selectedBillNumbers = this.bills.map(b => b.number)
+
+        // supply D3 with new data on change and if number of bills is 2 or more
+        if (this.selectedBillNumbers.length > 1) {
+          this.updateGraph()
+        }
+      }
+    },
+
+    async waitForDOM() {
+      const container = document.getElementById('subject-graph-svg-container')
+      while (!container || !container.clientWidth || !container.clientHeight) {
+        await sleep(10)
+      }
+    },
+
+    // TODO: use this
     exploreBill(bill) {
       window.open(bill.link, '_blank')
     },
 
-    toggleBill(bill) {
-      if (this.selectedBillNumbers.includes(bill.number)) {
-        this.selectedBillNumbers = this.selectedBillNumbers.filter(
-          n => n !== bill.number,
-        )
-      } else {
-        this.selectedBillNumbers.push(bill.number)
-      }
-
-      // trigger CD
-      this.bills = this.bills.slice()
-
-      // selecting or unselecting a bill should result in a new graph
-      this.redrawGraph()
-    },
-
-    generateGraph() {
-      const nodes = []
-      const links = []
-      const memberToGraphID = {}
-      let graphID = 1
-      this.selectedBills.forEach(b => {
-        const billGraphID = graphID++
-        nodes.push({
-          id: billGraphID,
-          type: 'bill',
-          display: b.title,
-        })
-        b.sponsors.concat(b.cosponsors).forEach(m => {
-          const partyChar = m.split('[')[1][0]
-          let type
-          if (partyChar === 'D') {
-            type = 'democrat'
-          } else if (partyChar === 'R') {
-            type = 'republican'
-          } else {
-            type = 'other'
-          }
-          if (memberToGraphID[m]) {
-            nodes.push({
-              id: memberToGraphID[m],
-              type,
-              display: m,
-            })
-            links.push({
-              source: billGraphID,
-              target: memberToGraphID[m],
-            })
-          } else {
-            nodes.push({
-              id: graphID++,
-              type,
-              display: m,
-            })
-            memberToGraphID[m] = graphID - 1
-            links.push({
-              source: billGraphID,
-              target: graphID - 1,
-            })
-          }
-        })
-      })
-      return { nodes, links }
-    },
-
-    async redrawGraph() {
-      this.removeFn()
-      await this.$nextTick()
-      this.removeFn = drawGraph(
-        '.subject-graph-svg-container',
-        this.generateGraph(),
-        {
-          onMouseover: this.onMouseover,
-          onMouseleave: this.onMouseleave,
-          onMouseup: this.onMouseup,
-        },
-      )
-    },
-
-    async getBills() {
-      if (this.selectedSubjects.length === 0) {
-        return
-      }
-
-      this.billsLoading = true
-      const params = {
-        subjects: this.selectedSubjects.join(','),
-        bipartisan: true,
-      }
-
-      try {
-        const { bills, source } = await this.dispatchGetBillsBySubject({
-          params,
-          previousSource: this.axiosSource,
-        })
-        this.axiosSource = source
-        this.bills = bills || []
-      } finally {
-        this.billsLoading = false
-      }
+    async updateGraph() {
+      await this.waitForDOM()
+      // TODO: add callbacks for mouse events
+      this.graph.update(generateGraph(this.bills, this.minimumBillCount))
     },
 
     clear() {
       this.bills = []
       this.selectedBillNumbers = []
-      this.removeFn()
+
+      // TODO: call update to remove nodes and edges
     },
   },
 
   watch: {
-    selectedSubjects(state) {
-      if (!state.length) {
-        this.clear()
+    query(query) {
+      if (query && (query.length >= 3 || query === '*')) {
+        this.search(query)
+      } else {
+        if (this.axiosSource) this.axiosSource.cancel()
+        this.billOptions = this.bills
       }
     },
   },
@@ -280,37 +367,14 @@ export default {
 .large-text {
   font-size: 1.1rem;
 }
-</style>
 
-<style>
-.subject-graph-svg-container {
+#subject-graph-svg-container {
   display: inline-block;
   position: relative;
   width: 100%;
   vertical-align: top;
   overflow: hidden;
-}
-
-.svg-content {
-  display: inline-block;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.bill-node {
-  fill: gray;
-}
-
-.dem-node {
-  fill: #1565c0;
-}
-
-.rep-node {
-  fill: #f44336;
-}
-
-.oth-node {
-  fill: green;
+  height: 500px;
+  cursor: grab;
 }
 </style>
