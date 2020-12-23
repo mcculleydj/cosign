@@ -70,7 +70,7 @@ export default {
 
   subscriptions() {
     const resize$ = fromEvent(window, 'resize').pipe(
-      filter(() => this.tab === 0 && this.member),
+      filter(() => this.tab === 1 && this.member),
       debounceTime(500),
       tap(() => {
         this.barChart.update(

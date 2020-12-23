@@ -88,6 +88,7 @@ export default class Bar {
       .append('text')
       .attr('class', 'label')
       .attr('font-size', '24px')
+      .style('pointer-events', 'none')
       .merge(labels)
       .transition(d3.transition())
       .attr('fill', d =>
@@ -105,6 +106,7 @@ export default class Bar {
       .attr('class', 'count')
       .attr('fill', 'white')
       .attr('font-size', '24px')
+      .style('pointer-events', 'none')
       .merge(counts)
       .transition(d3.transition())
       .attr('x', d => this.x(d.value) - 50)
