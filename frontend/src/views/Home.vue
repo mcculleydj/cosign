@@ -8,7 +8,7 @@
         to learn the practical aspects of a new language or framework is to
         build something from scratch that includes, but extends beyond the
         borders of the thing you are learning so that you confront problems at
-        the interface. For example, how to build for production using the Vue
+        the interfaces. For example, how to build for production using the Vue
         CLI or how to target a different operating system during compilation
         using Go.
       </p>

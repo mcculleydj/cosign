@@ -59,7 +59,6 @@
         </v-col>
       </v-row>
       <v-row v-else-if="cell.bills.length === 0">
-        <v-divider class="mt-3 mb-1" />
         <v-col>
           <i>No cosponsored legislation.</i>
         </v-col>
