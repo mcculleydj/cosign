@@ -33,13 +33,6 @@ export const routes = [
     icon: 'mdi-chart-arc',
     text: 'Visualizations',
   },
-  {
-    path: '/sandbox',
-    name: 'sandbox',
-    component: () => import('@/views/Sandbox'),
-    icon: 'mdi-test-tube',
-    text: 'Sandbox',
-  },
   // TODO: 404 page
 ]
 
