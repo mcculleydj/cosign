@@ -258,13 +258,19 @@ export default {
 
     bill() {
       if (this.initialized) {
-        this.$router.replace({
-          name: 'bills',
-          query: {
-            ...this.$route.query,
-            billNumber: this.bill.number,
-          },
-        })
+        if (!this.bill) {
+          this.$router.replace({
+            name: 'bills',
+          })
+        } else {
+          this.$router.replace({
+            name: 'bills',
+            query: {
+              ...this.$route.query,
+              billNumber: this.bill.number,
+            },
+          })
+        }
       } else {
         this.initialized = true
       }
